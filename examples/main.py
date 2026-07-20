@@ -113,6 +113,18 @@ EXAMPLES: dict[str, tuple[str, str]] = {
     "18": ("18_led_scanner.py",            "LED 扫描灯 - 骑士灯/波浪/乒乓/填充排空"),
     "19": ("19_countdown_timer.py",        "倒计时闹钟 - 拨码设时、蜂鸣报警"),
     "20": ("20_temp_alarm.py",             "温度阈值报警 - CPU/环境温度分区指示"),
+    "21": ("21_music_box.py",              "音乐盒 - 蜂鸣器演奏旋律 + LED 律动"),
+    "22": ("22_electronic_dice.py",        "电子骰子 - 按键摇骰子，LED 点数显示"),
+    "23": ("23_breathing_led.py",          "呼吸灯 - 锥形/波浪/交替/心跳多模式"),
+    "24": ("24_morse_code.py",             "莫尔斯电码 - 蜂鸣器 + LED 发送电码"),
+    "25": ("25_password_lock.py",          "电子密码锁 - 拨码设密码，按键验证"),
+    "26": ("26_snake_game.py",             "贪吃蛇 - 8 LED 经典游戏"),
+    "27": ("27_metronome.py",              "节拍器 - 可调速/调拍号，LED 视觉节拍"),
+    "28": ("28_digital_clock.py",          "数字时钟 - 数码管 HH:MM，LED 秒指示"),
+    "29": ("29_guess_number.py",           "猜数字 - 拨码设目标，LED 提示大小"),
+    "30": ("30_alarm_siren.py",            "警报器 - 警笛/火警/救护/门铃/倒计时"),
+    "31": ("31_lucky_wheel.py",            "幸运大转盘 - LED 旋转，按键停止"),
+    "32": ("32_dashboard.py",              "环境仪表盘 - 温度+CPU 综合监测"),
 }
 
 
@@ -130,7 +142,7 @@ def main() -> None:
     print(f"\n  {'0':>2}. 退出\n")
 
     try:
-        choice = input("  请输入选项 (0-20): ").strip()
+        choice = input("  请输入选项 (0-32): ").strip()
     except (EOFError, KeyboardInterrupt):
         print("\n  已取消。")
         return
