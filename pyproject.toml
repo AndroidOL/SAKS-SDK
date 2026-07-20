@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sakshat"
+version = "2.1.0"
+description = "SAKS (Swiss Army Knife Shield) SDK for Raspberry Pi — modern Python hardware control library"
+readme = "README.md"
+license = {text = "GPL-2.0-only"}
+authors = [
+    {name = "Spoony", email = "spoonysonny@gmail.com"},
+]
+maintainers = [
+    {name = "NXEZ.COM"},
+]
+keywords = [
+    "raspberry-pi", "gpio", "saks", "hat", "embedded", "iot",
+    "74hc595", "tm1637", "ds18b20", "led", "buzzer", "sensor",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Hardware",
+    "Topic :: Software Development :: Embedded Systems",
+    "Topic :: Education",
+]
+requires-python = ">=3.13"
+dependencies = [
+    "RPi.GPIO>=0.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "pyright>=1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/spoonysonny/SAKS-SDK"
+Documentation = "https://github.com/spoonysonny/SAKS-SDK#readme"
+Repository = "https://github.com/spoonysonny/SAKS-SDK.git"
+Issues = "https://github.com/spoonysonny/SAKS-SDK/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["sakshat"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = ["-v", "--tb=short", "--strict-markers"]
+
+[tool.coverage.run]
+source = ["sakshat"]
+omit = ["tests/*"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+    "ANN", # flake8-annotations
+    "S",   # flake8-bandit
+    "D",   # pydocstyle
+]
+ignore = [
+    "D203",  # no-blank-line-before-class (conflicts with D211)
+    "D212",  # multi-line-summary-first-line (conflicts with D213)
+    "S101",  # assert (used in tests)
+    "S104",  # possible-binding-to-all-interfaces
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonVersion = "3.13"

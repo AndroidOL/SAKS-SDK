@@ -1,127 +1,155 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-# Copyright (c) 2016 NXEZ.COM.
-# http://www.nxez.com
-#
-# Licensed under the GNU General Public License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.gnu.org/licenses/gpl-2.0.html
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""SAKS SDK 示例启动器.
 
-__author__ = 'Spoony'
-__version__  = 'version 0.0.1'
-__license__  = 'Copyright (c) 2016 NXEZ.COM'
+启动时自动检查运行环境，确保依赖已安装。
 
-from sakshat import SAKSHAT
-import time
-import commands
+运行方式: python3 examples/main.py
+"""
 
-#Declare the SAKS Board
-SAKS = SAKSHAT()
+import subprocess
+import sys
+import os
+import platform
 
-def dip_switch_status_changed_handler(status):
-    '''
-    called while the status of dip switch changed
-    :param status: current status
-    :return: void
-    '''
-    print('on_dip_switch_status_changed:')
-    print(status)
-    pass
 
-def tact_event_handler(pin, status):
-    '''
-    called while the status of tacts changed
-    :param pin: pin number which stauts of tact is changed
-    :param status: current status
-    :return: void
-    '''
-    print('tact_event_handler')
-    print("%d - %s" % (pin, status))
+# ---- 环境检查 ----
+def check_environment() -> dict[str, bool]:
+    """检查当前环境是否满足 SAKS SDK 运行要求.
 
-#def handler(signum, frame):
-#    SAKS.digital_display.off()
-#    print "receive a signal %d"%(signum)
+    Returns:
+        检查结果字典，键为检查项，值为是否通过.
+    """
+    results: dict[str, bool] = {}
 
-def get_cpu_temp():
-    tempFile = open( "/sys/class/thermal/thermal_zone0/temp" )
-    cpu_temp = tempFile.read()
-    tempFile.close()
-    return float(cpu_temp)/1000
-    # Uncomment the next line if you want the temp in Fahrenheit
-    #return float(1.8*cpu_temp)+32
+    # 1. Python 版本
+    py_ver = sys.version_info
+    results["Python >= 3.10"] = py_ver >= (3, 10)
 
-def get_gpu_temp():
-    gpu_temp = commands.getoutput( '/opt/vc/bin/vcgencmd measure_temp' ).replace( 'temp=', '' ).replace( '\'C', '' )
-    return float(gpu_temp)
-    # Uncomment the next line if you want the temp in Fahrenheit
-    # return float(1.8* gpu_temp)+32
+    # 2. 操作系统
+    system = platform.system()
+    results["操作系统为 Linux"] = system == "Linux"
+
+    # 3. RPi.GPIO
+    try:
+        import RPi.GPIO  # noqa: F401
+        results["RPi.GPIO 已安装"] = True
+    except ImportError:
+        results["RPi.GPIO 已安装"] = False
+
+    # 4. sakshat 包可导入
+    try:
+        import sakshat  # noqa: F401
+        results["sakshat 包可导入"] = True
+    except ImportError:
+        results["sakshat 包可导入"] = False
+
+    # 5. 树莓派检测
+    try:
+        with open("/proc/device-tree/model") as f:
+            model = f.read().strip()
+        results["树莓派型号"] = "Raspberry Pi" in model
+    except (OSError, FileNotFoundError):
+        results["树莓派型号"] = False
+
+    return results
+
+
+def print_env_report(results: dict[str, bool]) -> None:
+    """打印环境检查报告.
+
+    Args:
+        results: check_environment() 的返回结果.
+    """
+    print("=" * 50)
+    print("  SAKS SDK 环境检查")
+    print("=" * 50)
+    print(f"  Python 版本: {sys.version.split()[0]}")
+    print(f"  操作系统: {platform.system()} {platform.release()}")
+    print(f"  架构: {platform.machine()}")
+    print()
+
+    all_ok = True
+    for item, passed in results.items():
+        if isinstance(passed, bool):
+            status = "[OK]" if passed else "[FAIL]"
+            if not passed:
+                all_ok = False
+        else:
+            status = passed  # 树莓派型号直接显示
+        print(f"  {status} {item}")
+
+    print()
+    if not all_ok:
+        print("  [警告] 部分检查未通过，某些示例可能无法正常运行。")
+        if not results["RPi.GPIO 已安装"]:
+            print("         安装方法: sudo apt-get install python3-rpi.gpio")
+        if not results["操作系统为 Linux"]:
+            print("         当前非 Linux 系统，将使用模拟 GPIO 模式运行示例。")
+    else:
+        print("  [OK] 所有检查通过，环境就绪。")
+    print("=" * 50)
+
+
+# ---- 示例菜单 ----
+EXAMPLES: dict[str, tuple[str, str]] = {
+    "1":  ("01_hello_saks.py",              "基础入门 - LED 流水灯 + 蜂鸣器"),
+    "2":  ("02_digital_display.py",         "数码管显示 - 数字、小数点、倒计时"),
+    "3":  ("03_temperature_monitor.py",     "温度监控 - DS18B20 实时显示"),
+    "4":  ("04_button_interaction.py",      "按键与开关交互 - 轻触开关 + 拨码开关"),
+    "5":  ("05_cpu_temperature_alarm.py",   "CPU 温度监控与报警"),
+    "6":  ("06_full_demo.py",               "综合演示 - 所有功能一次体验"),
+    "7":  ("07_segment_deep_dive.py",       "数码管段码深度解析 - 段码控制与字母显示"),
+    "8":  ("08_74hc595_deep_dive.py",       "74HC595 芯片深度解析 - 移位寄存器原理"),
+    "9":  ("09_tm1637_deep_dive.py",        "TM1637 芯片深度解析 - 通信协议与原始数据"),
+    "10": ("10_buzzer_deep_dive.py",        "蜂鸣器深度解析 - PWM 与节奏控制"),
+    "11": ("11_led_deep_dive.py",           "LED 深度解析 - 扫描、PWM 与呼吸灯"),
+    "12": ("12_ds18b20_deep_dive.py",       "DS18B20 深度解析 - OneWire 协议与 CRC 校验"),
+    "13": ("13_temp_dual_display.py",       "温度双通道交替显示 - C/U 格式轮流展示"),
+    "14": ("14_scrolling_text.py",          "滚动文字显示 - 数码管跑马灯"),
+    "15": ("15_binary_counter.py",          "二进制计数器 - LED 二进制 + 数码管十进制"),
+    "16": ("16_reaction_game.py",           "反应速度测试 - 按键反应小游戏"),
+}
+
+
+def main() -> None:
+    """主函数."""
+    # 环境检查
+    results = check_environment()
+    print_env_report(results)
+    print()
+
+    # 显示菜单
+    print("  请选择要运行的示例:\n")
+    for key, (_filename, desc) in EXAMPLES.items():
+        print(f"  {key:>2}. {desc}")
+    print(f"\n  {'0':>2}. 退出\n")
+
+    try:
+        choice = input("  请输入选项 (0-16): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\n  已取消。")
+        return
+
+    if choice == "0" or choice == "":
+        print("  再见！")
+        return
+
+    if choice not in EXAMPLES:
+        print(f"  无效选项: {choice}")
+        return
+
+    filename, desc = EXAMPLES[choice]
+    script_path = os.path.join(os.path.dirname(__file__), filename)
+
+    if not os.path.exists(script_path):
+        print(f"  [错误] 找不到示例文件: {script_path}")
+        return
+
+    print(f"\n  启动: {desc}")
+    print("  " + "-" * 48)
+    subprocess.run([sys.executable, script_path], check=False)
+
 
 if __name__ == "__main__":
-    print("main")
-    #SAKS = SAKSController()
-    #print(PINS.BUZZER)
-    #print(SAKS.appRoot)
-    SAKS.dip_switch_status_changed_handler = dip_switch_status_changed_handler
-    SAKS.tact_event_handler = tact_event_handler
-    b = SAKS.buzzer
-    b.beep(1)
-    #SAKS.ledrow.ic.set_data(0x08)
-    SAKS.ledrow.on()
-    time.sleep(3)
-    SAKS.ledrow.off()
-    time.sleep(3)
-    SAKS.ledrow.set_row([True, False, True, False, True, False, True, False])
-    time.sleep(2)
-    SAKS.ledrow.set_row([None, True, False, None, None, None, None, True])
-    print( SAKS.ledrow.row_status)
-    print( SAKS.ledrow.is_on(1))
-    print( SAKS.ledrow.is_on(2))
-
-    print( SAKS.ledrow.is_on(3))
-    print( SAKS.ledrow.is_on(4))
-
-    #SAKS.ledrow.items[7].flashAction(0.02,0.02,30)
-    #SAKS.ledrow.on()
-    print(SAKS.ds18b20.temperature)
-    #SAKS.digital_display.show('#.1#.234')
-    #print(SAKS.dip_switch.is_on)
-
-    # 将显示“1234”4位数字，并且每一位右下角的小点点亮
-    SAKS.digital_display.show("1.2.3.4.")
-    time.sleep(1)
-    # 将显示“1234”4位数字，并且数字2后面的小点点亮
-    SAKS.digital_display.show("12.34")
-    time.sleep(1)
-    # 在第4位数码管显示“1”，其他3位数码管不显示
-    SAKS.digital_display.show("###1")
-    time.sleep(1)
-    SAKS.digital_display.off()
-    time.sleep(1)
-    SAKS.digital_display.on()
-
-    '''
-    while True:
-        SAKS.digital_display.show("%d%d%d%d" % (time.gmtime().tm_min / 10, time.gmtime().tm_min % 10, time.gmtime().tm_sec / 10, time.gmtime().tm_sec % 10))
-        time.sleep(0.5)
-    '''
-
-    '''
-    while True:
-        t = get_cpu_temp()
-        print("%3.1f" % t)
-        #SAKS.digital_display.show("%3.2f" % t)
-        if t > 38:
-            b.beepAction(0.02,0.02,30)
-        time.sleep(1)
-    '''
-
-    input("Enter any keys to exit...")
+    main()
