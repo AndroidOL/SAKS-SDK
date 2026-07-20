@@ -50,6 +50,8 @@ class GPIOProvider(Protocol):
         pin: int, edge: int, callback: object, bouncetime: int = 0
     ) -> None: ...
     @staticmethod
+    def remove_event_detect(pin: int) -> None: ...
+    @staticmethod
     def setmode(mode: int) -> None: ...
     @staticmethod
     def setwarnings(value: bool) -> None: ...
@@ -91,6 +93,10 @@ class _MockGPIO:
         pin: int, edge: int, callback: object, bouncetime: int = 0  # noqa: ARG004
     ) -> None:
         logger.debug("Mock GPIO.add_event_detect(pin=%d)", pin)
+
+    @staticmethod
+    def remove_event_detect(pin: int) -> None:  # noqa: ARG004
+        logger.debug("Mock GPIO.remove_event_detect(pin=%d)", pin)
 
     @staticmethod
     def setmode(mode: int) -> None:  # noqa: ARG004

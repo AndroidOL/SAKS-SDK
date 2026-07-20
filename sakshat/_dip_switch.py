@@ -87,6 +87,10 @@ class DipSwitch2Bit:
 
         # 注册 GPIO 中断 (bouncetime=50ms 防抖)
         for pin in self._pins:
+            try:
+                GPIO.remove_event_detect(pin)
+            except Exception:
+                pass  # 引脚可能尚未注册过事件检测
             GPIO.add_event_detect(
                 pin, GPIO.BOTH, callback=self._on_event, bouncetime=50
             )

@@ -75,6 +75,10 @@ class Tact:
         else:
             self._status = not GPIO.input(pin)
 
+        try:
+            GPIO.remove_event_detect(pin)
+        except Exception:
+            pass  # 引脚可能尚未注册过事件检测
         GPIO.add_event_detect(
             pin, GPIO.BOTH, callback=self._on_event, bouncetime=1
         )
