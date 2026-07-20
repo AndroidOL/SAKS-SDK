@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2015-2026 NXEZ.COM.
+# Copyright (c) 2015-2026 NXEZ.COM.
 # https://www.nxez.com
 #
 # Licensed under the GNU General Public License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 """拨码开关 (2位) 模块.
 
 通过 GPIO 中断检测 SAKS 扩展板上 2 位拨码开关的状态变化，
-支持观察者模式回调。
+支持观察者模式回调。当 GPIO 边沿检测不可用时自动降级为轮询模式。
 
 Example:
     >>> from sakshat import DipSwitch2Bit
@@ -45,6 +45,7 @@ class DipSwitch2Bit:
     """2 位拨码开关控制类.
 
     通过 GPIO 中断检测拨码开关状态变化，并通过回调通知。
+    当边沿检测不可用时自动降级为轮询模式（需调用 poll() 或通过 is_on 属性读取）。
 
     Attributes:
         is_on: 两位开关的当前状态 [bit1, bit2].
@@ -85,23 +86,58 @@ class DipSwitch2Bit:
                 not GPIO.input(switch1), not GPIO.input(switch2)
             ]
 
-        # 注册 GPIO 中断 (bouncetime=50ms 防抖)
+        # 尝试注册 GPIO 中断，失败则降级为轮询模式
+        self._use_polling: bool = False
         for pin in self._pins:
             try:
                 GPIO.remove_event_detect(pin)
             except Exception:
-                pass  # 引脚可能尚未注册过事件检测
-            GPIO.add_event_detect(
-                pin, GPIO.BOTH, callback=self._on_event, bouncetime=50
-            )
+                pass
+            try:
+                GPIO.add_event_detect(
+                    pin, GPIO.BOTH, callback=self._on_event, bouncetime=50
+                )
+            except RuntimeError:
+                logger.warning(
+                    "拨码开关引脚 %d 边沿检测不可用，降级为轮询模式。"
+                    "请调用 poll() 或在循环中检查 is_on 属性。",
+                    pin,
+                )
+                self._use_polling = True
 
         self._observers: list[object] = []
         self._callback: Callable[[list[bool]], None] | None = None
 
     @property
     def is_on(self) -> list[bool]:
-        """返回两位开关的当前状态 [bit1, bit2]."""
+        """返回两位开关的当前状态 [bit1, bit2].
+
+        轮询模式下会自动读取 GPIO 并通知观察者。
+        """
+        if self._use_polling:
+            self.poll()
         return self._status.copy()
+
+    def poll(self) -> bool:
+        """轮询 GPIO 引脚状态并通知变更.
+
+        轮询模式下调用此方法以检测状态变化。
+        中断模式下无需调用（状态由硬件中断自动更新）。
+
+        Returns:
+            True 如果状态发生了变化，False 否则.
+        """
+        changed = False
+        for i, pin in enumerate(self._pins):
+            raw = GPIO.input(pin)
+            new_status = bool(raw) if self._active_level else not raw
+            if new_status != self._status[i]:
+                self._status[i] = new_status
+                changed = True
+
+        if changed:
+            self._notify_observers()
+        return changed
 
     def register(self, observer: object) -> None:
         """注册观察者对象.

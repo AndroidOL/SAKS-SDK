@@ -107,6 +107,11 @@ class SAKSHAT:
 
     def _gpio_init(self) -> None:
         """初始化 GPIO 引脚."""
+        # 先清理可能残留的 GPIO 状态（防止之前异常退出导致的引脚占用）
+        try:
+            GPIO.cleanup()
+        except Exception:
+            pass
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
 

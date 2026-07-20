@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2015-2026 NXEZ.COM.
+# Copyright (c) 2015-2026 NXEZ.COM.
 # https://www.nxez.com
 #
 # Licensed under the GNU General Public License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 
 通过 GPIO 中断检测 SAKS 扩展板上轻触开关的按压/释放事件，
 支持观察者模式和回调函数两种通知方式。
+当 GPIO 边沿检测不可用时自动降级为轮询模式。
 
 Example:
     >>> from sakshat import Tact, TactRow
@@ -46,6 +47,7 @@ class Tact:
     """单个轻触开关控制类.
 
     通过 GPIO 中断检测按压/释放事件。
+    当边沿检测不可用时自动降级为轮询模式。
 
     Attributes:
         is_on: 开关当前是否被按下.
@@ -75,20 +77,41 @@ class Tact:
         else:
             self._status = not GPIO.input(pin)
 
+        # 尝试注册 GPIO 中断，失败则降级为轮询模式
+        self._use_polling: bool = False
         try:
             GPIO.remove_event_detect(pin)
         except Exception:
-            pass  # 引脚可能尚未注册过事件检测
-        GPIO.add_event_detect(
-            pin, GPIO.BOTH, callback=self._on_event, bouncetime=1
-        )
+            pass
+        try:
+            GPIO.add_event_detect(
+                pin, GPIO.BOTH, callback=self._on_event, bouncetime=1
+            )
+        except RuntimeError:
+            logger.warning(
+                "轻触开关引脚 %d 边沿检测不可用，降级为轮询模式。"
+                "请通过 is_on 属性读取状态。",
+                pin,
+            )
+            self._use_polling = True
 
         self._observers: list[object] = []
         self._callback: Callable[[int, bool], None] | None = None
 
     @property
     def is_on(self) -> bool:
-        """开关当前是否被按下."""
+        """开关当前是否被按下.
+
+        轮询模式下直接读取 GPIO 引脚。
+        """
+        if self._use_polling:
+            raw = GPIO.input(self._pin)
+            new_status = bool(raw) if self._active_level else not raw
+            if new_status != self._status:
+                self._status = new_status
+                self._notify_observers(new_status)
+            return new_status
+
         if self._active_level:
             if self._status != GPIO.input(self._pin):
                 self._status = GPIO.input(self._pin)
