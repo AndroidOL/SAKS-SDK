@@ -74,6 +74,11 @@ class IC74HC595:
         Raises:
             SAKSValidationError: 引脚编号无效时抛出.
         """
+        for name, pin in [("ds", ds), ("shcp", shcp), ("stcp", stcp)]:
+            if pin < 0:
+                raise SAKSValidationError(
+                    f"引脚编号不能为负数，{name}={pin}"
+                )
         self._pins = {"ds": ds, "shcp": shcp, "stcp": stcp}
         self._active_level = active_level
         self._data: int = 0x00

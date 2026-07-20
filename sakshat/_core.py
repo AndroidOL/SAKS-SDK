@@ -91,15 +91,19 @@ class SAKSHAT:
         self.dip_switch_status_changed_handler: Callable[[list[bool]], None] | None = None
         self.tact_event_handler: Callable[[int, bool], None] | None = None
 
+        self._gpio_done: bool = False
         try:
             self._gpio_init()
+            self._gpio_done = True
             self._init_peripherals()
             atexit.register(self._auto_cleanup)
             self._initialized = True
             logger.info("SAKS 扩展板初始化完成")
-        except Exception:
+        except Exception as e:
             self.cleanup()
-            raise SAKSError("SAKS 扩展板初始化失败") from None
+            raise SAKSError(
+                f"SAKS 扩展板初始化失败: {e}"
+            ) from e
 
     def _gpio_init(self) -> None:
         """初始化 GPIO 引脚."""
@@ -213,21 +217,22 @@ class SAKSHAT:
         关闭所有输出设备并释放 GPIO 引脚。
         可以重复调用，不会产生副作用。
         """
-        if not self._initialized:
-            return
-        try:
-            if hasattr(self, "digital_display"):
-                self.digital_display.off()
-            if hasattr(self, "ledrow"):
-                self.ledrow.off()
-            if hasattr(self, "buzzer"):
-                self.buzzer.off()
-        except Exception:
-            logger.debug("关闭设备时出错", exc_info=True)
-        try:
-            GPIO.cleanup()
-        except Exception:
-            logger.debug("GPIO 清理时出错", exc_info=True)
+        if self._initialized:
+            try:
+                if hasattr(self, "digital_display"):
+                    self.digital_display.off()
+                if hasattr(self, "ledrow"):
+                    self.ledrow.off()
+                if hasattr(self, "buzzer"):
+                    self.buzzer.off()
+            except Exception:
+                logger.debug("关闭设备时出错", exc_info=True)
+        if self._gpio_done:
+            try:
+                GPIO.cleanup()
+            except Exception:
+                logger.debug("GPIO 清理时出错", exc_info=True)
+            self._gpio_done = False
         self._initialized = False
         logger.info("SAKS 扩展板资源已清理")
 
