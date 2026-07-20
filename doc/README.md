@@ -9,6 +9,27 @@
 - SAKS 扩展板 (瑞士军刀扩展板)
 - DS18B20 温度传感器 (可选)
 
+## 虚拟环境注意事项
+
+SDK 在虚拟环境中可以正常使用，但存在以下限制：
+
+| 环境 | 边沿检测 (中断) | 推荐方案 |
+|------|:---:|------|
+| 系统 Python | ✅ 完全支持 | 安装 lgpio 后优先使用，否则回退 RPi.GPIO |
+| 虚拟环境 (venv) | ⚠️ 降级为轮询 | 自动降级，程序正常运行但开关响应需通过 `poll()` 或 `is_on` 属性轮询 |
+
+**原因**：lgpio 是 C 扩展，在虚拟环境中通过 pip 安装后无法正确访问 `/dev/gpiochip*` 字符设备。SDK 会自动检测虚拟环境并跳过 lgpio，避免冲突。
+
+**解决方案**（三选一）：
+1. **推荐**: 直接使用系统 Python（退出虚拟环境），无需额外操作
+2. 安装 lgpio 系统包：`sudo apt install python3-lgpio`，然后 SDK 可在系统 Python 下使用 lgpio 后端
+3. 继续使用虚拟环境：SDK 自动降级为轮询模式，开关功能正常但响应延迟略高（毫秒级，不影响典型使用场景）
+
+```bash
+# 查看当前后端状态
+python -c "from sakshat._gpio import get_backend_info; print(get_backend_info())"
+```
+
 ## 功能特性
 
 | 外设         | 芯片/接口    | 说明                          |

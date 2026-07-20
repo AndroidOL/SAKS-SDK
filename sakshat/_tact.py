@@ -83,7 +83,7 @@ class Tact:
             GPIO.add_event_detect(
                 pin, GPIO.BOTH, callback=self._on_event, bouncetime=1
             )
-        except RuntimeError:
+        except Exception:
             logger.warning(
                 "轻触开关引脚 %d 边沿检测不可用，降级为轮询模式。"
                 "请通过 is_on 属性读取状态。",

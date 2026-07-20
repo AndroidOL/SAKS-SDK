@@ -14,6 +14,10 @@ cd SAKS-SDK
 pip install -e .
 ```
 
+> **注意**: 如在虚拟环境中使用，拨码开关和轻触开关的边沿检测（硬件中断）可能不可用，SDK 将自动降级为轮询模式。
+> 如需完整边沿检测支持，请使用系统 Python 环境，或执行 `sudo apt install python3-lgpio` 安装 lgpio 系统包。
+> 详情参见 [完整文档](doc/README.md#虚拟环境注意事项)。
+
 ## 快速开始
 
 ```python

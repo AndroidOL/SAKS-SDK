@@ -93,7 +93,7 @@ class DipSwitch2Bit:
                 GPIO.add_event_detect(
                     pin, GPIO.BOTH, callback=self._on_event, bouncetime=50
                 )
-            except RuntimeError:
+            except Exception:
                 logger.warning(
                     "拨码开关引脚 %d 边沿检测不可用，降级为轮询模式。"
                     "请调用 poll() 或在循环中检查 is_on 属性。",

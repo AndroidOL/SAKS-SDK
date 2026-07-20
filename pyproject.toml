@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sakshat"
-version = "2.3.0"
+version = "2.3.1"
 description = "SAKS (Swiss Army Knife Shield) SDK for Raspberry Pi — modern Python hardware control library"
 readme = "README.md"
 license = {text = "GPL-2.0-only"}
@@ -36,6 +36,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+lgpio = [
+    "lgpio>=0.2.2; sys_platform == 'linux'",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
