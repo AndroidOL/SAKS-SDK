@@ -109,6 +109,10 @@ EXAMPLES: dict[str, tuple[str, str]] = {
     "14": ("14_scrolling_text.py",          "滚动文字显示 - 数码管跑马灯"),
     "15": ("15_binary_counter.py",          "二进制计数器 - LED 二进制 + 数码管十进制"),
     "16": ("16_reaction_game.py",           "反应速度测试 - 按键反应小游戏"),
+    "17": ("17_stopwatch.py",              "秒表计时器 - 按键启停、LED 进度条"),
+    "18": ("18_led_scanner.py",            "LED 扫描灯 - 骑士灯/波浪/乒乓/填充排空"),
+    "19": ("19_countdown_timer.py",        "倒计时闹钟 - 拨码设时、蜂鸣报警"),
+    "20": ("20_temp_alarm.py",             "温度阈值报警 - CPU/环境温度分区指示"),
 }
 
 
@@ -126,7 +130,7 @@ def main() -> None:
     print(f"\n  {'0':>2}. 退出\n")
 
     try:
-        choice = input("  请输入选项 (0-16): ").strip()
+        choice = input("  请输入选项 (0-20): ").strip()
     except (EOFError, KeyboardInterrupt):
         print("\n  已取消。")
         return

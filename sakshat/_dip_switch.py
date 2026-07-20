@@ -86,13 +86,9 @@ class DipSwitch2Bit:
                 not GPIO.input(switch1), not GPIO.input(switch2)
             ]
 
-        # 尝试注册 GPIO 中断，失败则降级为轮询模式
+        # 注册 GPIO 中断（bouncetime=50ms 防抖），失败则降级为轮询模式
         self._use_polling: bool = False
         for pin in self._pins:
-            try:
-                GPIO.remove_event_detect(pin)
-            except Exception:
-                pass
             try:
                 GPIO.add_event_detect(
                     pin, GPIO.BOTH, callback=self._on_event, bouncetime=50

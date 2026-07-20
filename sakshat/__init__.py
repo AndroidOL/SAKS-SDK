@@ -47,7 +47,7 @@ from sakshat._led_74hc595 import Led74HC595
 from sakshat._pins import SAKSPins
 from sakshat._tact import Tact, TactRow
 
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 __author__ = "Spoony"
 __license__ = "GPL-2.0-only"
 

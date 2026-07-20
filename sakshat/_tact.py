@@ -77,12 +77,8 @@ class Tact:
         else:
             self._status = not GPIO.input(pin)
 
-        # 尝试注册 GPIO 中断，失败则降级为轮询模式
+        # 注册 GPIO 中断（bouncetime=1ms 防抖），失败则降级为轮询模式
         self._use_polling: bool = False
-        try:
-            GPIO.remove_event_detect(pin)
-        except Exception:
-            pass
         try:
             GPIO.add_event_detect(
                 pin, GPIO.BOTH, callback=self._on_event, bouncetime=1

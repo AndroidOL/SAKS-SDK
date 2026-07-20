@@ -1,6 +1,6 @@
 # API Reference
 
-SAKS SDK v2.1.0 完整 API 参考文档。
+SAKS SDK v2.3.0 完整 API 参考文档。
 
 ---
 
@@ -67,7 +67,7 @@ SAKSHAT()
 
 **Raises：**
 
-- `SAKSError`：GPIO 初始化失败时抛出。
+- `SAKSError`：GPIO 初始化或外设创建失败时抛出。底层异常会被屏蔽，统一包装为 SAKSError。
 
 **属性：**
 
@@ -93,7 +93,7 @@ SAKSHAT()
 |------|------|
 | `cleanup()` | 清理 GPIO 资源，关闭所有输出设备并释放 GPIO 引脚。可重复调用，不会产生副作用。 |
 | `__enter__()` | 支持 `with` 语句，返回 `self`。 |
-| `__exit__(exc_type, exc_val, exc_tb)` | 退出 `with` 语句时自动调用 `cleanup()`。不抑制异常。 |
+| `__exit__(exc_type, exc_val, exc_tb) -> bool` | 退出 `with` 语句时自动调用 `cleanup()`。返回 `False` 表示不抑制异常。 |
 
 **回调方法（由外设调用，不应直接调用）：**
 
@@ -866,7 +866,7 @@ DigitalDisplay(*, di: int, clk: int, active_level: int = GPIO.HIGH)
 | `numbers` | `list[str]` | 当前显示的字符列表（只读） |
 | `ic` | `ICTM1637` | 底层 TM1637 芯片实例（只读） |
 | `SEGMENT_MAP` | `dict[str, int]` | 段名称到位掩码的映射字典（类属性）。段名称：`a`(0x01), `b`(0x02), `c`(0x04), `d`(0x08), `e`(0x10), `f`(0x20), `g`(0x40), `dp`(0x80) |
-| `CHAR_MAP` | `dict[str, int]` | 字符到段码的映射字典（类属性）。大写字母 A-F/H/L/P/U (0x77-0x3E) 及小写变体 o(0x5C)/n(0x54)/r(0x50)/t(0x78)/y(0x6E)。注意数字 0-9 不在此字典中，数字段码参见 `_SEGMENT_CODE` 内部表 |
+| `CHAR_MAP` | `dict[str, int]` | 字符到段码的映射字典（类属性）。大写字母 A-F/H/L/P/U (0x77-0x3E) 及小写变体 o(0x5C)/n(0x54)/r(0x50)/t(0x78)/y(0x6E)。注意数字 0-9 不在此字典中，数字显示由 `show()` 和 `show_char()` 方法内部处理 |
 
 **方法：**
 
@@ -920,7 +920,7 @@ DigitalDisplay(*, di: int, clk: int, active_level: int = GPIO.HIGH)
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `digit` | `int` | 数码管位置（0-3） |
-| `segments` | `str` | 段名称字符串，如 `"def"`、`"abcdefg"`、`"a.dp"` |
+| `segments` | `str` | 段名称字符串，如 `"def"`、`"abcdefg"`、`"adp"` |
 
 **Raises：**
 

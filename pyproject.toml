@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sakshat"
-version = "2.1.0"
+version = "2.3.0"
 description = "SAKS (Swiss Army Knife Shield) SDK for Raspberry Pi — modern Python hardware control library"
 readme = "README.md"
 license = {text = "GPL-2.0-only"}
@@ -44,10 +44,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/spoonysonny/SAKS-SDK"
-Documentation = "https://github.com/spoonysonny/SAKS-SDK#readme"
-Repository = "https://github.com/spoonysonny/SAKS-SDK.git"
-Issues = "https://github.com/spoonysonny/SAKS-SDK/issues"
+Homepage = "https://github.com/AndroidOL/SAKS-SDK"
+Documentation = "https://github.com/AndroidOL/SAKS-SDK#readme"
+Repository = "https://github.com/AndroidOL/SAKS-SDK.git"
+Issues = "https://github.com/AndroidOL/SAKS-SDK/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["sakshat"]
