@@ -125,6 +125,14 @@ EXAMPLES: dict[str, tuple[str, str]] = {
     "30": ("30_alarm_siren.py",            "警报器 - 警笛/火警/救护/门铃/倒计时"),
     "31": ("31_lucky_wheel.py",            "幸运大转盘 - LED 旋转，按键停止"),
     "32": ("32_dashboard.py",              "环境仪表盘 - 温度+CPU 综合监测"),
+    "33": ("33_simon_says.py",             "西蒙记忆 - 记住 LED 序列并重复"),
+    "34": ("34_whack_a_mole.py",           "打地鼠 - LED 随机亮起，快速按键打中"),
+    "35": ("35_ping_pong.py",              "LED 乒乓球 - 光点弹跳，按键回击"),
+    "36": ("36_stacker.py",                "堆叠挑战 - 方块移动，精准对齐堆叠"),
+    "37": ("37_rhythm_master.py",          "节奏大师 - 跟随节拍，精准按键得分"),
+    "38": ("38_bomb_defusal.py",           "拆弹专家 - 按顺序剪线，倒计时拆弹"),
+    "39": ("39_binary_decoder.py",         "二进制解码 - LED 二进制→十进制转换"),
+    "40": ("40_hot_potato.py",             "烫手山芋 - 多人传递，随机爆炸"),
 }
 
 
@@ -142,7 +150,7 @@ def main() -> None:
     print(f"\n  {'0':>2}. 退出\n")
 
     try:
-        choice = input("  请输入选项 (0-32): ").strip()
+        choice = input("  请输入选项 (0-40): ").strip()
     except (EOFError, KeyboardInterrupt):
         print("\n  已取消。")
         return
